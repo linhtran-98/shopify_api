@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital@1&display=swap');
+
+*{
+    scroll-behavior: smooth;
+}
+
+.main-menu > li > a, .ltext-102 {
+    font-family: 'Montserrat', sans-serif !important;
+}
