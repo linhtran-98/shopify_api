@@ -1,8 +1,10 @@
 @extends('admin.main')
 @section('content')
+@include('admin.alert')
   <form action="{{route('product.update')}}" method="post" enctype="multipart/form-data">
       @csrf
       <div class="card-body">
+        <input type="hidden" name="product_id" value="{{$product->id}}">
           <div class="form-group">
               <label for="title">Tên sản phẩm</label>
               <input value="{{$product->title}}" type="text" required name="title" class="form-control" id="title" placeholder="Enter name...">

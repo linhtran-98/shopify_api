@@ -29,8 +29,8 @@ class ShopifyController extends Controller
         $shop_name = $request->shop_name;
         $api_key = env('SHOPIFY_API_KEY');
         $scope = 'read_products, write_products';
-        // $redirect_uri = 'http://localhost:8000/authen';
-        $redirect_uri = env('NGROK_URL').'/authen';
+        $redirect_uri = 'http://localhost:8000/authen';
+        // $redirect_uri = env('NGROK_URL').'/authen';
 
         $url = $shop_name.'/admin/oauth/authorize?client_id='.$api_key.'&scope='.$scope.'&redirect_uri='.$redirect_uri;
         return redirect($url);

@@ -40,11 +40,10 @@ class ProductController extends Controller
             'title'       => 'required',
             'price'       => 'required',
             'image'       => 'nullable',
-            'description' => 'required'
+            'description' => 'nullable'
         ],[
             'title.required'       => 'Tên sản phẩm không hợp lệ',
-            'price.required'       => 'Giá sản phẩm không hợp lệ',
-            'description.required' => 'Chi tiết sản phẩm không hợp lệ'
+            'price.required'       => 'Giá sản phẩm không hợp lệ'
         ]);
 
         $this->saveToShopify($shop_info->domain, $shop_info->access_token, $data);
@@ -118,7 +117,41 @@ class ProductController extends Controller
 
     public function update(Request $request){
 
-        dd($request->all());
+        $product_data = $request->all();
+        $shop_info = Shop::select('domain', 'access_token')->find(session()->get('shop_id'));
+
+        // update product
+        $product_url     = 'https://'.$shop_info->domain.'/admin/api/2021-10/products/'.$product_data['product_id'].'.json';
+        
+        $product_payload = ['headers' => [
+                                'X-Shopify-Access-Token' => $shop_info->access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'product' => [
+                                            'id' => $product_data['product_id'],
+                                            'title' => $product_data['title'],
+                                            'body_html' => $product_data['description']]
+                        ]];
+    
+        $product_response = makeGuzzleRequest('PUT', $product_url, $product_payload);
+
+        // update variant default
+        $variant_id = $product_response['product']->variants[0]->id;
+        $variant_url = 'https://'.$shop_info->domain.'/admin/api/2022-07/variants/'.$variant_id.'.json';
+        
+        $variant_payload = ['headers' => [
+                                'X-Shopify-Access-Token' => $shop_info->access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'variant' => [
+                                            'price' => $product_data['price']]
+                            ]];
+
+        makeGuzzleRequest('PUT', $variant_url, $variant_payload);
+        // sleep(5);
+        return redirect()->route('products')->with('success', 'Sửa sản phẩm thành công');
     }
 
     public function delete(Request $request){
