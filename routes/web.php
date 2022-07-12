@@ -22,6 +22,7 @@ Route::get('/shopify', [ShopifyController::class, 'shopify'])->name('shopify');
 Route::get('authen', [ShopifyController::class, 'authen']);
 
 Route::group(['prefix' => 'admin', 'middleware' => 'shop.login'], function () {
+    
     Route::get('products', [ProductController::class, 'index'])->name('products');
     Route::get('product/create', [ProductController::class, 'create'])->name('product.create');
     Route::post('product/store', [ProductController::class, 'store'])->name('product.store');
@@ -29,28 +30,3 @@ Route::group(['prefix' => 'admin', 'middleware' => 'shop.login'], function () {
     Route::post('product/update', [ProductController::class, 'update'])->name('product.update');
     Route::post('product/delete', [ProductController::class, 'delete'])->name('product.delete');
 });
-
-Route::get('create', [ShopifyController::class, 'createProduct'])->name('create');
-
-
-// Route::get('queue', [ShopifyController::class, 'queue'])->name('queue');
-
-// Route::get('ehe', function(){
-//     $shop = Shop::where('id' , '=', 6565)->first();
-//     dd(is_null($shop));
-// });
-
-// Route::get('test', function(){
-//     // session(['key' => 'value']);
-//     session()->flash('name', 'Linh');
-//     // session()->forget('name');
-//     // dd(session()->get('name'));
-//     dd(session()->has('name'));
-
-//     return redirect()->route('test2');
-// });
-// Route::get('test2', function(){
-//     dd(session()->get('name'));
-// })->name('test2');
-
-// Route::any('webhook', [ShopifyController::class, 'webhook']);
