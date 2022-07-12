@@ -27,7 +27,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'shop.login'], function () {
     Route::post('product/store', [ProductController::class, 'store'])->name('product.store');
     Route::get('product/edit/{id}', [ProductController::class, 'edit'])->name('product.edit');
     Route::post('product/update', [ProductController::class, 'update'])->name('product.update');
-    Route::post('product/delete/{id}', [ProductController::class, 'delete'])->name('product.delete');
+    Route::post('product/delete', [ProductController::class, 'delete'])->name('product.delete');
 });
 
 Route::get('create', [ShopifyController::class, 'createProduct'])->name('create');

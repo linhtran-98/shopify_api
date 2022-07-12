@@ -30,7 +30,7 @@
         </div>
         <!-- /.card-body -->
         <div class="card-footer">
-            <button type="submit" class="btn" style="background-image: linear-gradient(to right, rgb(205, 240, 234), rgb(249, 249, 249), rgb(246, 198, 234), rgb(250, 244, 183));">Tạo sản phẩm</button>
+            <button type="submit" class="btn font-weight-bold" style="background-image: linear-gradient(to right, rgb(251, 244, 251), rgb(129, 190, 231), rgb(226, 236, 137));">Tạo sản phẩm</button>
         </div>
     </form>
 @endsection

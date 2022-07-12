@@ -1,6 +1,6 @@
   <!-- Main Sidebar Container -->
   {{-- @dd($pending.' '.$approve.' '.$reject); --}}
-  <aside class="main-sidebar sidebar-dark-primary elevation-4"  style="background: -webkit-linear-gradient(rgb(205, 240, 234), rgb(249, 249, 249), rgb(246, 198, 234), rgb(250, 244, 183));">
+  <aside class="main-sidebar sidebar-dark-primary elevation-4"  style="background: -webkit-linear-gradient(rgb(251, 244, 251), rgb(129, 190, 231), rgb(226, 236, 137), rgb(27, 30, 122));">
     <!-- Brand Logo -->
     <a href="{{route('products')}}" class="brand-link">
       <img src="{{asset('uploads/logo.jpg')}}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
@@ -9,7 +9,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <!-- SidebarSearch Form -->
-      <form action="#" method="GET">
+      {{-- <form action="#" method="GET">
         <div class="form-inline mt-3 mb-3">
           <div class="input-group">
             <input id="search" name="search" required class="form-control border border-info" type="search" placeholder="Live search" aria-label="Search">
@@ -20,7 +20,7 @@
             </div>
           </div>
         </div>
-      </form>
+      </form> --}}
       {{-- <div id="livesearch" class="d-flex flex-column" style="gap:3px;">
       </div> --}}
       <!-- Sidebar Menu -->
@@ -29,7 +29,7 @@
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
             <li class="nav-item">
-            <a href="{{route('product.create')}}" class="nav-link text-dark border border-dark">
+            <a href="{{route('product.create')}}" class="nav-link text-success border border-success">
               <p class="font-weight-bold">
                 Thêm sản phẩm
                 <i class="right fa fa-plus"></i>

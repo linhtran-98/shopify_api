@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use GuzzleHttp\Client;
-
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 use App\Variant;
 use App\Product;
 use App\Image;
@@ -56,58 +55,52 @@ class ProductController extends Controller
         
         // save product
         $product_url = 'https://'.$domain.'/admin/api/2022-07/products.json';
-        
-        $product_client = new Client();
-        $product_res = $product_client->request('POST', $product_url, [
-                'headers' => [
-                    'X-Shopify-Access-Token' => $access_token,
-                    'Content-Type' => 'application/json'
-                ],
+        $product_payload = ['headers' => [
+                'X-Shopify-Access-Token' => $access_token,
+                'Content-Type' => 'application/json'
+            ],
                 'query' => [
                     'product' => [
                                 'title' => $data['title'],
                                 'body_html' => $data['description']
                     ]
-                ]
-        ]);
-
-        $product_data = (array) json_decode($product_res->getBody());
+        ]];
+    
+        $product_data = makeGuzzleRequest('POST', $product_url, $product_payload);
         
         // Update defaut variant
         $variant_id = $product_data['product']->variants[0]->id;
-
         $variant_url = 'https://'.$domain.'/admin/api/2022-07/variants/'.$variant_id.'.json';
         
-        $variant_client = new Client();
-        $variant_res = $variant_client->request('PUT', $variant_url, [
-                'headers' => [
-                    'X-Shopify-Access-Token' => $access_token,
-                    'Content-Type' => 'application/json'
-                ],
-                'query' => [
-                    'variant' => [
-                                'price' => $data['price']
-                    ]
+        $variant_payload = ['headers' => [
+                'X-Shopify-Access-Token' => $access_token,
+                'Content-Type' => 'application/json'
+            ],
+            'query' => [
+                'variant' => [
+                            'price' => $data['price']
                 ]
-        ]);
+            ]];
+
+        makeGuzzleRequest('PUT', $variant_url, $variant_payload);
 
         // update image
         if(isset($data['image']))
         {
-            $url_image = 'https://'.$domain.'/admin/api/2022-07/products/'.$product_data['product']->id.'/images.json';
-            $client_image = new Client();
-            $image_res = $client_image->request('POST', $url_image, [
-                    'headers' => [
-                        'X-Shopify-Access-Token' => $access_token,
-                        'Content-Type' => 'application/json'
-                    ],
-                    'json' => [
-                        'image' => [
-                            'attachment' => base64_encode(file_get_contents($data['image'])),
-                            'filename' => $data['image']->getClientOriginalName()
-                        ]
+            $image_url = 'https://'.$domain.'/admin/api/2022-07/products/'.$product_data['product']->id.'/images.json';
+            
+            $image_payload = ['headers' => [
+                    'X-Shopify-Access-Token' => $access_token,
+                    'Content-Type' => 'application/json'
+                ],
+                'json' => [
+                    'image' => [
+                        'attachment' => base64_encode(file_get_contents($data['image'])),
+                        'filename' => $data['image']->getClientOriginalName()
                     ]
-            ]);
+                ]];
+
+            makeGuzzleRequest('POST', $image_url, $image_payload);
         }
     }
 
@@ -128,8 +121,9 @@ class ProductController extends Controller
         dd($request->all());
     }
 
-    public function delete(){
+    public function delete(Request $request){
 
+        dd($request->all());
     }
 
 }

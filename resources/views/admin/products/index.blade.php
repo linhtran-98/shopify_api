@@ -22,11 +22,12 @@
               @endif
               <td class="text-left">{{ $value->title }}</td>
               <td>{{ $value->price }}</td>
-              <td class="text-center"><a class="btn btn-block btn-outline-success" href="{{route('product.edit', $value->id)}}">Sửa</a></td>
+              <td class="text-center"><a class="btn btn-block btn-outline-primary" href="{{route('product.edit', $value->id)}}">Sửa</a></td>
               <td class="text-center">
-                <form action="" method="post">
+                <form action="{{route('product.delete')}}" method="post">
                   @csrf
-                  <button type="submit" class="btn btn-block btn-outline-danger" onclick="return confirm('Do you want xóa tin tức này?')">Xóa</button>
+                  <input type="hidden" name="product_id" value="{{$value->id}}">
+                  <button type="submit" class="btn btn-block btn-outline-danger" onclick="return confirm('Do you want xóa sản phẩm này?')">Xóa</button>
                 </form>
               </td>
             </tr>
