@@ -44,7 +44,7 @@ class DeleteProduct implements ShouldQueue
 
         if($product)
         {
-            $product->delete();
+            Product::destroy($product_id);
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use App\Variant;
@@ -15,12 +16,12 @@ class ProductController extends Controller
     public function index(Request $request){
 
         $shop_id = session()->get('shop_id');
-        $title = 'Dashboard';
+        $title   = 'Dashboard';
 
         $products = Product::where('shop_id', '=', $shop_id)->orderByDesc('id')->get();
 
         return view('admin.products.index', [
-            'title' => $title, 
+            'title'    => $title, 
             'products' => $products
         ]);
     }
@@ -36,13 +37,13 @@ class ProductController extends Controller
         $shop_info = Shop::select('id', 'domain', 'access_token')->find(session()->get('shop_id'));
 
         $data = $request->validate([
-            'title' => 'required',
-            'price' => 'required',
-            'image' => 'nullable',
+            'title'       => 'required',
+            'price'       => 'required',
+            'image'       => 'nullable',
             'description' => 'required'
         ],[
-            'title.required' => 'Tên sản phẩm không hợp lệ',
-            'price.required' => 'Giá sản phẩm không hợp lệ',
+            'title.required'       => 'Tên sản phẩm không hợp lệ',
+            'price.required'       => 'Giá sản phẩm không hợp lệ',
             'description.required' => 'Chi tiết sản phẩm không hợp lệ'
         ]);
 
@@ -54,33 +55,32 @@ class ProductController extends Controller
     public function saveToShopify($domain, $access_token, $data){
         
         // save product
-        $product_url = 'https://'.$domain.'/admin/api/2022-07/products.json';
+        $product_url     = 'https://'.$domain.'/admin/api/2022-07/products.json';
+
         $product_payload = ['headers' => [
-                'X-Shopify-Access-Token' => $access_token,
-                'Content-Type' => 'application/json'
-            ],
-                'query' => [
-                    'product' => [
-                                'title' => $data['title'],
-                                'body_html' => $data['description']
-                    ]
-        ]];
+                                'X-Shopify-Access-Token' => $access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'product' => [
+                                            'title' => $data['title'],
+                                            'body_html' => $data['description']]
+                        ]];
     
         $product_data = makeGuzzleRequest('POST', $product_url, $product_payload);
         
-        // Update defaut variant
+        // Update defaut variant to get price
         $variant_id = $product_data['product']->variants[0]->id;
         $variant_url = 'https://'.$domain.'/admin/api/2022-07/variants/'.$variant_id.'.json';
         
         $variant_payload = ['headers' => [
-                'X-Shopify-Access-Token' => $access_token,
-                'Content-Type' => 'application/json'
-            ],
-            'query' => [
-                'variant' => [
-                            'price' => $data['price']
-                ]
-            ]];
+                                'X-Shopify-Access-Token' => $access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'variant' => [
+                                            'price' => $data['price']]
+                            ]];
 
         makeGuzzleRequest('PUT', $variant_url, $variant_payload);
 
@@ -90,15 +90,14 @@ class ProductController extends Controller
             $image_url = 'https://'.$domain.'/admin/api/2022-07/products/'.$product_data['product']->id.'/images.json';
             
             $image_payload = ['headers' => [
-                    'X-Shopify-Access-Token' => $access_token,
-                    'Content-Type' => 'application/json'
-                ],
-                'json' => [
-                    'image' => [
-                        'attachment' => base64_encode(file_get_contents($data['image'])),
-                        'filename' => $data['image']->getClientOriginalName()
-                    ]
-                ]];
+                                'X-Shopify-Access-Token' => $access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'json' => [
+                                'image' => [
+                                    'attachment' => base64_encode(file_get_contents($data['image'])),
+                                    'filename' => $data['image']->getClientOriginalName()]
+                            ]];
 
             makeGuzzleRequest('POST', $image_url, $image_payload);
         }
@@ -106,13 +105,14 @@ class ProductController extends Controller
 
     public function edit($id){
         
-        $title = 'Sửa sản phẩm';
+        $title   = 'Sửa sản phẩm';
         $product = Product::find($id);
 
-        if(!is_null($product)){
-
+        if(!is_null($product))
+        {
             return view('admin.products.edit', ['title' => $title, 'product' => $product]);
         }
+
         return abort(404);
     }
 
@@ -124,19 +124,29 @@ class ProductController extends Controller
     public function delete(Request $request){
 
         $shop_info = Shop::select('domain', 'access_token')->find(session()->get('shop_id'));
-        $product = Product::find($request->product_id);
+        $product   = Product::find($request->product_id);
 
         if(!is_null($shop_info) && !is_null($product))
         {
-            $product->delete();
+            DB::beginTransaction();
+            try {
+                Product::destroy($product->id);
 
-            $url_delete = 'https://'.$shop_info->domain.'/admin/api/2022-01/products/'.$product->id.'.json';
-            $payload = ['headers' => ['X-Shopify-Access-Token' => $shop_info->access_token]];
+                $url_delete = 'https://'.$shop_info->domain.'/admin/api/2022-01/products/'.$product->id.'.json';
+                $payload    = ['headers' => ['X-Shopify-Access-Token' => $shop_info->access_token]];
 
-            $product_id = makeGuzzleRequest('DELETE', $url_delete, $payload);
+                makeGuzzleRequest('DELETE', $url_delete, $payload);
 
-            return back()->with('success', 'Xóa sản phẩm thành công');
+                DB::commit();
+                return back()->with('success', 'Xóa sản phẩm thành công');
+
+            } catch (Throwable $e){
+
+                DB::rollback();
+                report($e);
+            }
         }
+        
         return back()->with('error', 'Có lỗi xảy ra');
     }
 

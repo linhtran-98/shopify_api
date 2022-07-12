@@ -56,7 +56,9 @@ class ShopifyController extends Controller
         {
             $this->saveShopToDB($shop_info, $access_token);
             $this->saveProductToDB($products, $shop_info->id);
-            webhookRegister($shop_name, $access_token, $webhook_address);
+
+            $topic = ['products/create', 'products/update', 'products/delete'];
+            webhookRegister($shop_name, $access_token, $webhook_address, $topic);
         }
 
         session()->flash('shop_id', $shop_info->id);
@@ -103,7 +105,7 @@ class ShopifyController extends Controller
 
         if(!is_null($products))
         {
-            foreach ($products as $product){
+            foreach ($products as $product) {
 
                 $image = !empty($product->image->src) ? $product->image->src : null;
                 
