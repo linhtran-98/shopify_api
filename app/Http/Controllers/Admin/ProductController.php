@@ -123,7 +123,21 @@ class ProductController extends Controller
 
     public function delete(Request $request){
 
-        dd($request->all());
+        $shop_info = Shop::select('domain', 'access_token')->find(session()->get('shop_id'));
+        $product = Product::find($request->product_id);
+
+        if(!is_null($shop_info) && !is_null($product))
+        {
+            $product->delete();
+
+            $url_delete = 'https://'.$shop_info->domain.'/admin/api/2022-01/products/'.$product->id.'.json';
+            $payload = ['headers' => ['X-Shopify-Access-Token' => $shop_info->access_token]];
+
+            $product_id = makeGuzzleRequest('DELETE', $url_delete, $payload);
+
+            return back()->with('success', 'Xóa sản phẩm thành công');
+        }
+        return back()->with('error', 'Có lỗi xảy ra');
     }
 
 }

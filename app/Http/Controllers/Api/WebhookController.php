@@ -13,18 +13,18 @@ class WebhookController extends Controller
     public function create(Request $request){
 
         $job = new CreateProduct($request->all());
-        dispatch($job)->delay(now()->addSecond(1));
+        dispatch($job);
     }
 
     public function update(Request $request){
 
         $job = new UpdateProduct($request->all());
-        dispatch($job)->delay(now()->addSecond(1));
+        dispatch($job);
     }
 
     public function delete(Request $request){
 
         $job = new DeleteProduct($request->all());
-        dispatch($job)->delay(now()->addSecond(1));
+        dispatch($job);
     }
 }
