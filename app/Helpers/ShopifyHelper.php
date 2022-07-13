@@ -97,4 +97,80 @@ if(!function_exists('webhookRegister'))
     }
 }
 
+if(!function_exists('productUpdate'))
+{
+    function productUpdate($url, $access_token, $data){
+
+        $product_payload = ['headers' => [
+                                'X-Shopify-Access-Token' => $access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'product' => [
+                                            'id' => $data['product_id'],
+                                            'title' => $data['title'],
+                                            'body_html' => $data['description']]
+                        ]];
+    
+        $product_res = makeGuzzleRequest('PUT', $url, $product_payload);
+        return $product_res['product'];
+    }
+}
+
+if(!function_exists('variantUpdate'))
+{
+    function variantUpdate($url, $access_token, $price){
+
+        $variant_payload = ['headers' => [
+            'X-Shopify-Access-Token' => $access_token,
+            'Content-Type' => 'application/json'
+        ],
+        'query' => [
+            'variant' => [
+                        'price' => $price]
+        ]];
+
+        $variant_res = makeGuzzleRequest('PUT', $url, $variant_payload);
+        return $variant_res['variant'];
+    }
+}
+
+if(!function_exists('createImage'))
+{
+    function createImage($url, $access_token, $image){
+
+        $image_payload = ['headers' => [
+                                    'X-Shopify-Access-Token' => $access_token,
+                                    'Content-Type' => 'application/json'
+                                ],
+                                'json' => [
+                                    'image' => [
+                                        'attachment' => base64_encode(file_get_contents($image)),
+                                        'filename' => $image->getClientOriginalName()]
+                                ]];
+
+        $image_res = makeGuzzleRequest('POST', $url, $image_payload);
+        return $image_res['image'];
+    }
+}
+
+if(!function_exists('updateImage'))
+{
+    function updateImage($url, $access_token, $image_id, $image){
+
+        $image_payload = ['headers' => [
+            'X-Shopify-Access-Token' => $access_token,
+            'Content-Type' => 'application/json'
+        ],
+        'json' => [
+            'image' => [
+                'attachment' => base64_encode(file_get_contents($image)),
+                'filename' => $image->getClientOriginalName()]
+        ]];
+
+        $image_res = makeGuzzleRequest('PUT', $url, $image_payload);
+        return $image_res['image'];
+    }
+}
+
 

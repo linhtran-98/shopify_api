@@ -38,33 +38,38 @@ class CreateProduct implements ShouldQueue
     public function handle()
     {
         $product = $this->request;
-
-        $variant = $product['variants'][0];
         
-        $image = !empty($product['image']['src']) ? $product['image']['src'] : null;
-        
-        $shop = Shop::select('id')->where('name', '=', $product['vendor'])->first();
+        $findProduct = Product::find($product['id']);
 
-        $data_product = [
-            'id'          => $product['id'],
-            'title'       => $product['title'],
-            'description' => $product['body_html'],
-            'image'       => $image,
-            'price'       => $variant['price'],
-            'shop_id'     => $shop->id
-        ];
-
-        // DB::beginTransaction();
-
-        try {
-
-            Product::create($data_product);
-            // DB::commit();
-            // all good
-        } catch (Throwable $e) {
+        if(!$findProduct)
+        {
+            $variant = $product['variants'][0];
             
-            // DB::rollback();
-            report($e);
+            $image = !empty($product['image']['src']) ? $product['image']['src'] : null;
+            
+            $shop = Shop::select('id')->where('name', '=', $product['vendor'])->first();
+    
+            $data_product = [
+                'id'          => $product['id'],
+                'title'       => $product['title'],
+                'description' => $product['body_html'],
+                'image'       => $image,
+                'price'       => $variant['price'],
+                'shop_id'     => $shop->id
+            ];
+    
+            // DB::beginTransaction();
+    
+            try {
+    
+                Product::create($data_product);
+                // DB::commit();
+                // all good
+            } catch (Throwable $e) {
+                
+                // DB::rollback();
+                report($e);
+            }
         }
     }
 }

@@ -45,10 +45,12 @@ class ProductController extends Controller
             'title.required'       => 'Tên sản phẩm không hợp lệ',
             'price.required'       => 'Giá sản phẩm không hợp lệ'
         ]);
+        
+        $create_data = $this->saveToShopify($shop_info->domain, $shop_info->access_token, $data);
+        $create_data['shop_id'] = $shop_info->id;
 
-        $this->saveToShopify($shop_info->domain, $shop_info->access_token, $data);
-
-        return back()->with('success', 'Thêm sản phẩm thành công');
+        Product::create($create_data);
+        return redirect()->route('products')->with('success', 'Thêm sản phẩm thành công');
     }
 
     public function saveToShopify($domain, $access_token, $data){
@@ -68,38 +70,40 @@ class ProductController extends Controller
     
         $product_data = makeGuzzleRequest('POST', $product_url, $product_payload);
         
+        $data_create = [
+            'id' => $product_data['product']->id,
+            'title' => $product_data['product']->title,
+            'description' => $product_data['product']->body_html
+        ];
         // Update defaut variant to get price
         $variant_id = $product_data['product']->variants[0]->id;
         $variant_url = 'https://'.$domain.'/admin/api/2022-07/variants/'.$variant_id.'.json';
-        
-        $variant_payload = ['headers' => [
-                                'X-Shopify-Access-Token' => $access_token,
-                                'Content-Type' => 'application/json'
-                            ],
-                            'query' => [
-                                'variant' => [
-                                            'price' => $data['price']]
-                            ]];
+        $variant_res = variantUpdate($variant_url, $access_token, $data['price']);
+        $data_create['price'] = $variant_res->price;
 
-        makeGuzzleRequest('PUT', $variant_url, $variant_payload);
-
-        // update image
+        // add image
         if(isset($data['image']))
         {
             $image_url = 'https://'.$domain.'/admin/api/2022-07/products/'.$product_data['product']->id.'/images.json';
             
-            $image_payload = ['headers' => [
-                                'X-Shopify-Access-Token' => $access_token,
-                                'Content-Type' => 'application/json'
-                            ],
-                            'json' => [
-                                'image' => [
-                                    'attachment' => base64_encode(file_get_contents($data['image'])),
-                                    'filename' => $data['image']->getClientOriginalName()]
-                            ]];
+            $image_res = createImage($image_url, $access_token, $data['image']);
 
-            makeGuzzleRequest('POST', $image_url, $image_payload);
+            $data_create['image'] = $image_res->src;
+            // $image_payload = ['headers' => [
+            //                     'X-Shopify-Access-Token' => $access_token,
+            //                     'Content-Type' => 'application/json'
+            //                 ],
+            //                 'json' => [
+            //                     'image' => [
+            //                         'attachment' => base64_encode(file_get_contents($data['image'])),
+            //                         'filename' => $data['image']->getClientOriginalName()]
+            //                 ]];
+
+            // makeGuzzleRequest('POST', $image_url, $image_payload);
         }
+
+        return $data_create;
+        
     }
 
     public function edit($id){
@@ -117,41 +121,54 @@ class ProductController extends Controller
 
     public function update(Request $request){
 
-        $product_data = $request->all();
+        $product_data = $request->validate([
+            'product_id'  => 'required',
+            'title'       => 'required',
+            'price'       => 'required',
+            'image'       => 'nullable',
+            'description' => 'nullable'
+        ],[
+            'product_id.required' => 'Có lỗi xảy ra',
+            'title.required'      => 'Tên sản phẩm không hợp lệ',
+            'price.required'      => 'giá sản phẩm không hợp lệ'
+        ]);
+
         $shop_info = Shop::select('domain', 'access_token')->find(session()->get('shop_id'));
 
         // update product
         $product_url     = 'https://'.$shop_info->domain.'/admin/api/2021-10/products/'.$product_data['product_id'].'.json';
-        
-        $product_payload = ['headers' => [
-                                'X-Shopify-Access-Token' => $shop_info->access_token,
-                                'Content-Type' => 'application/json'
-                            ],
-                            'query' => [
-                                'product' => [
-                                            'id' => $product_data['product_id'],
-                                            'title' => $product_data['title'],
-                                            'body_html' => $product_data['description']]
-                        ]];
-    
-        $product_response = makeGuzzleRequest('PUT', $product_url, $product_payload);
+        $product_res     = productUpdate($product_url, $shop_info->access_token, $product_data);
+        $update_data     = ['title'       => $product_data['title'],
+                            'description' => $product_data['description']
+                        ];
 
         // update variant default
-        $variant_id = $product_response['product']->variants[0]->id;
+        $variant_id  = $product_res->variants[0]->id;
         $variant_url = 'https://'.$shop_info->domain.'/admin/api/2022-07/variants/'.$variant_id.'.json';
-        
-        $variant_payload = ['headers' => [
-                                'X-Shopify-Access-Token' => $shop_info->access_token,
-                                'Content-Type' => 'application/json'
-                            ],
-                            'query' => [
-                                'variant' => [
-                                            'price' => $product_data['price']]
-                            ]];
+        $variant_res = variantUpdate($variant_url, $shop_info->access_token, $product_data['price']);
 
-        makeGuzzleRequest('PUT', $variant_url, $variant_payload);
-        // sleep(5);
-        return redirect()->route('products')->with('success', 'Sửa sản phẩm thành công');
+        $update_data['price'] = $variant_res->price;
+        // update image
+        if(isset($product_data['image']))
+        {
+            // if image product in shopify empty -> create else update
+            if(is_null($product_res->image))
+            {
+                $image_url = 'https://'.$shop_info->domain.'/admin/api/2022-07/products/'.$product_data['product_id'].'/images.json';
+                $image_res = createImage($image_url, $shop_info->access_token, $product_data['image']);
+                $update_data['image'] = $image_res->src;
+            }else
+            {
+                $image_url = 'https://'.$shop_info->domain.'/admin/api/2022-07/products/'.$product_data['product_id'].'/images/'.$product_res->image->id.'.json';
+                $image_res = updateImage($image_url, $shop_info->access_token, $product_res->image->id, $product_data['image']);
+                $update_data['image'] = $image_res->src;
+            }
+        }
+
+        // save to db
+        Product::where('id', '=', $product_res->id)->update($update_data);
+
+        return back()->with('success', 'Sửa sản phẩm thành công');
     }
 
     public function delete(Request $request){
