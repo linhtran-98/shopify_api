@@ -10,7 +10,7 @@ Vì app không được phép install từ bên thứ 3 nên chúng ta cần tha
 
 [Đăng nhập vào partner của shopify](https://www.shopify.com/partners) với tài khoản: shopifytest4444@gmail.com, mật khẩu: 123456
 <h2>Apps -> tên app (linhzz)</h2>
-- <h3>Ta cần cấu hình lại đường dẫn: App setup -> nhập ngrok url vào App URL và ngrok url/authen vào Allowed redirection URL(s)</h3>
-- <h3>Trở lại Overview -> Lấy api key và secret key nhập vào file .env (Cần khởi động lại serve khi thay đổi .env)</h3>
-- <h3>Sau đó tại Overview -> select store -> click vào store muốn install</h3>
-- <p>Trong quá trình load nếu bị lỗi 400 xin vui lòng reload lại trang web</p>
+<h3>Ta cần cấu hình lại đường dẫn: App setup -> nhập ngrok url vào App URL và ngrok url/authen vào Allowed redirection URL(s)</h3>
+<h3>Trở lại Overview -> Lấy api key và secret key nhập vào file .env (Cần khởi động lại serve khi thay đổi .env)</h3>
+<h3>Sau đó tại Overview -> select store -> click vào store muốn install</h3>
+<p>Trong quá trình load nếu bị lỗi 400 xin vui lòng reload lại trang web</p>
