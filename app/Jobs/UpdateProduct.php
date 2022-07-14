@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Bus\Queueable;
 use Illuminate\Http\Request;
 use App\Product;
-// use App\Variant;
-// use App\Image;
 use App\Shop;
 
 class UpdateProduct implements ShouldQueue

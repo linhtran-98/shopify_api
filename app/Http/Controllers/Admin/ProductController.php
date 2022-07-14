@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
-use App\Variant;
 use App\Product;
-use App\Image;
 use App\Shop;
 
 class ProductController extends Controller
@@ -31,7 +29,13 @@ class ProductController extends Controller
         $title = 'Create product';
         return view('admin.products.create')->with(compact('title'));
     }
-
+    
+    /**
+     * store- save product to db & shopify
+     *
+     * @param  Request $request
+     * @return redirect
+     */
     public function store(Request $request){
 
         $shop_info = Shop::select('id', 'domain', 'access_token')->find(session()->get('shop_id'));
@@ -89,17 +93,6 @@ class ProductController extends Controller
             $image_res = createImage($image_url, $access_token, $data['image']);
 
             $data_create['image'] = $image_res->src;
-            // $image_payload = ['headers' => [
-            //                     'X-Shopify-Access-Token' => $access_token,
-            //                     'Content-Type' => 'application/json'
-            //                 ],
-            //                 'json' => [
-            //                     'image' => [
-            //                         'attachment' => base64_encode(file_get_contents($data['image'])),
-            //                         'filename' => $data['image']->getClientOriginalName()]
-            //                 ]];
-
-            // makeGuzzleRequest('POST', $image_url, $image_payload);
         }
 
         return $data_create;
@@ -164,6 +157,8 @@ class ProductController extends Controller
                 $update_data['image'] = $image_res->src;
             }
         }
+
+        // dd($update_data);
 
         // save to db
         Product::where('id', '=', $product_res->id)->update($update_data);
